@@ -1,0 +1,50 @@
+# Ignore env
+env.sh
+
+# Ignore builds
+dist/
+.go/
+.container-*
+.push-*
+.dockerfile-amd64
+bin/
+.wercker
+
+# Binaries for programs and plugins
+*.exe
+*.dll
+*.so
+*.dylib
+*.pyc
+
+# Test binary, build with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
+.glide/
+
+cloud-provider.cfg
+cloud-provider.yaml
+manifests/bmcs-config.yaml
+manifests/bmcs-secret.yaml
+vendors.txt
+
+env-old.sh
+config.yaml
+**/*cloudconfig_var.enc
+**/*kubeconfig_var.enc
+
+# vim
+*.sw[op]
+
+# OSX
+.DS_Store
+
+# Wercker
+.wercker/
+
+.idea/
+*.iml

@@ -1,0 +1,82 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: oci-flexvolume-driver-master
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      component: oci-flexvolume-driver
+      tier: control-plane
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        component: oci-flexvolume-driver
+        tier: control-plane
+    spec:
+      serviceAccountName: oci-flexvolume-driver
+      nodeSelector:
+        node-role.kubernetes.io/master: ""
+      tolerations:
+      - key: node.cloudprovider.kubernetes.io/uninitialized
+        value: "true"
+        effect: NoSchedule
+      - key: node-role.kubernetes.io/master
+        operator: Exists
+        effect: NoSchedule
+      volumes:
+        - name: flexvolume-mount
+          hostPath:
+            path: /usr/libexec/kubernetes/kubelet-plugins/volume/exec/
+            type: DirectoryOrCreate
+        - name: config
+          secret:
+            secretName: oci-flexvolume-driver
+      containers:
+        - name: oci-flexvolume-driver
+          image: ghcr.io/manassehzhou/oci-cloud-controller-manager:latest:latest
+          command: ["/usr/local/bin/install.py", "-c", "/tmp/config.yaml"]
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - mountPath: /flexmnt
+              name: flexvolume-mount
+            - mountPath: /tmp
+              name: config
+              readOnly: true
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: oci-flexvolume-driver-worker
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      component: oci-flexvolume-driver
+      tier: node
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        component: oci-flexvolume-driver
+        tier: node
+    spec:
+      volumes:
+        - name: flexvolume-mount
+          hostPath:
+            path: /usr/libexec/kubernetes/kubelet-plugins/volume/exec
+            type: DirectoryOrCreate
+      containers:
+        - name: oci-flexvolume-driver
+          image: ghcr.io/manassehzhou/oci-cloud-controller-manager:latest:latest
+          command: ["/usr/local/bin/install.py"]
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - mountPath: /flexmnt
+              name: flexvolume-mount
